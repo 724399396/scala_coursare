@@ -66,18 +66,21 @@ trait Solver extends GameDef {
    */
   def from(initial: Stream[(Block, List[Move])],
            explored: Set[Block]): Stream[(Block, List[Move])] = {
-    val more = for {
-      (oldB, oldMoves) <- initial
-      newOne <- newNeighborsOnly(neighborsWithHistory(oldB, oldMoves), explored)
-    } yield newOne
-    initial #::: from(more, explored ++ more.map(_._1))
+    if (initial.isEmpty) Stream.empty
+    else {
+      val more = for {
+        (oldB, oldMoves) <- initial
+        newOne <- newNeighborsOnly(neighborsWithHistory(oldB, oldMoves), explored)
+      } yield newOne
+      initial #::: from(more, explored ++ more.map(_._1))
+    }
   }
 
   /**
    * The stream of all paths that begin at the starting block.
    */
   lazy val pathsFromStart: Stream[(Block, List[Move])] =
-    from(Set((startBlock, List())).toStream, Set())
+    from(Set((startBlock, List())).toStream, Set(startBlock))
 
   /**
    * Returns a stream of all possible pairs of the goal block along
@@ -95,7 +98,7 @@ trait Solver extends GameDef {
    * position.
    */
   lazy val solution: List[Move] = pathsToGoal.map{case (_, moves) => moves}.headOption match {
-    case Some(x) => x
+    case Some(x) => x.reverse
     case None => List()
   }
 }
