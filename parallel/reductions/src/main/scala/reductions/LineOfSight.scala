@@ -22,7 +22,7 @@ object LineOfSightRunner {
     println(s"sequential time: $seqtime ms")
 
     val partime = standardConfig measure {
-      LineOfSight.parLineOfSight(input, output, 10000)
+      LineOfSight.parLineOfSight(input, output, 100000)
     }
     println(s"parallel time: $partime ms")
     println(s"speedup: ${seqtime / partime}")

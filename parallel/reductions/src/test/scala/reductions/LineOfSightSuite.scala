@@ -32,7 +32,11 @@ class LineOfSightSuite extends FunSuite {
 
   test("downsweep parallel") {
     val output = new Array[Float](4)
-    println(upsweep(Array[Float](0f, 1f, 8f, 9f), 0, 4, 1))
+    val output2 = new Array[Float](4)
+    val input = Array[Float](0f, 1f, 8f, 9f)
+    parLineOfSight(input, output, 1)
+    lineOfSight(input,output2)
+    assert(output===output2)
   }
 }
 
