@@ -10,18 +10,23 @@ trait BinomialHeap extends quickcheck.Heap {
   protected def root(t: Node) = t.x
   protected def rank(t: Node) = t.r
   protected def link(t1: Node, t2: Node): Node = // t1.r==t2.r
-    if (ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t2::t1.c) else Node(t2.x, t2.r+1, t1::t2.c)
+    if (t1.r == t2.r) {
+      if (ord.lteq(t1.x, t2.x)) Node(t1.x, t1.r + 1, t2 :: t1.c) else Node(t2.x, t2.r + 1, t1 :: t2.c)
+    } else throw new IllegalStateException("not match rank link")
   protected def ins(t: Node, ts: H): H = ts match {
     case Nil => List(t)
     case tp::ts => // t.r<=tp.r
-      if (t.r<tp.r) t::tp::ts else ins(link(t, tp), ts)
+      if (t.r<tp.r) t::tp::ts
+      else if (t.r == tp.r) ins(link(t, tp), ts)
+      else
+        tp :: ins(t, ts)
   }
 
   override def empty = Nil
   override def isEmpty(ts: H) = ts.isEmpty
 
   override def insert(x: A, ts: H) = ins(Node(x,0,Nil), ts)
-  override def meld(ts1: H, ts2: H) = (ts1, ts2) match {
+  override def meld(ts1: H, ts2: H): H = (ts1, ts2) match {
     case (Nil, ts) => ts
     case (ts, Nil) => ts
     case (t1::ts1, t2::ts2) =>
@@ -65,7 +70,7 @@ trait Bogus2BinomialHeap extends BinomialHeap {
 
 trait Bogus3BinomialHeap extends BinomialHeap {
   override protected def link(t1: Node, t2: Node): Node = // t1.r==t2.r
-    if (!ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t2::t1.c) else Node(t2.x, t2.r+1, t1::t2.c)
+    if (ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t1::t1.c) else Node(t2.x, t2.r+1, t2::t2.c)
 }
 
 trait Bogus4BinomialHeap extends BinomialHeap {
