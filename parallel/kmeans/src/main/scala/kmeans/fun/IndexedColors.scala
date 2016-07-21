@@ -33,10 +33,10 @@ class IndexedColorFilter(initialImage: Img,
   def getResult() = indexedImage(initialImage, newMeans)
 
   private def imageToPoints(img: Img): GenSeq[Point] =
-    for (x <- 0 until img.width; y <- 0 until img.height) yield {
+    (for (x <- 0 until img.width; y <- 0 until img.height) yield {
       val rgba = img(x, y)
       new Point(red(rgba), green(rgba), blue(rgba))
-    }
+    }).par
 
   private def indexedImage(img: Img, means: GenSeq[Point]) = {
     val dst = new Img(img.width, img.height)
@@ -85,7 +85,7 @@ class IndexedColorFilter(initialImage: Img,
       }
 
     val d2 = initialPoints.size.toDouble / numColors
-    (0 until numColors) map (idx => initialPoints((idx * d2).toInt))
+    (((0 until numColors) map (idx => initialPoints((idx * d2).toInt)))).par
   }
 
   private def computeSNR(points: GenSeq[Point], means: GenSeq[Point]): Double = {
