@@ -71,8 +71,7 @@ class KMeans {
 
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
     oldMeans.zip(newMeans) forall {
-      case (o,n) => Math.sqrt(Math.pow((o.x - n.x),2) + Math.pow((o.y - n.y),2) +
-        Math.pow((o.z - n.z),2)) <= eta
+      case (o,n) => o.squareDistance(n) <= eta
     }
   }
 

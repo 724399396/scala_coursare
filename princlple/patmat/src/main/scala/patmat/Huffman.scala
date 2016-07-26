@@ -125,7 +125,7 @@ object Huffman {
 
     if (singleton(trees)) trees
     else {
-      trees match {
+      (trees: @unchecked) match {
         case x :: y :: xs =>
           insert(makeCodeTree(x,y), xs)
       }
