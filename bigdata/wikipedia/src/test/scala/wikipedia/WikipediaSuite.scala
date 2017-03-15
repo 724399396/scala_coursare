@@ -31,9 +31,14 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
   // Conditions:
   // (1) the language stats contain the same elements
   // (2) they are ordered (and the order doesn't matter if there are several languages with the same count)
-  def equivalentAndOrdered(given: List[(String, Int)], expected: List[(String, Int)]): Boolean = {
-    /* (1) */ (given.toSet == expected.toSet) &&
-    /* (2) */!(given zip given.tail).exists({ case ((_, occ1), (_, occ2)) => occ1 < occ2 })
+  def assertEquivalentAndOrdered(given: List[(String, Int)], expected: List[(String, Int)]): Unit = {
+    // (1)
+    assert(given.toSet == expected.toSet, "The given elements are not the same as the expected elements")
+    // (2)
+    assert(
+      !(given zip given.tail).exists({ case ((_, occ1), (_, occ2)) => occ1 < occ2 }),
+      "The given elements are not in descending order"
+    )
   }
 
   test("'occurrencesOfLang' should work for (specific) RDD with one element") {
