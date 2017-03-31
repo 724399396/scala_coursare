@@ -33,7 +33,7 @@ object Visualization {
   }
 
   val cosMap: MutableMap[Double,Double] = MutableMap()
-  private def cachCos(in: Double): Double = {
+  private def cacheCos(in: Double): Double = {
     sinMap.get(in) match {
       case None =>
         val res = Math.cos(in)
@@ -44,17 +44,24 @@ object Visualization {
     }
   }
 
+  val disMap: MutableMap[(Location,Location), Double] = MutableMap()
   def distance(locA: Location, locB: Location): Double = {
-    val radLatA = rad(locA.lat)
-    val radLonA = rad(locA.lon)
-    val radLatB = rad(locB.lat)
-    val radLonB = rad(locB.lon)
-    val deltaLat = radLatA - radLatB
-    val deltaLon = radLonA - radLonB
-    val a = Math.pow(cacheSin(deltaLat/2), 2) + cachCos(radLatA) *
-      cachCos(radLatB) * Math.pow(cacheSin(deltaLon/2), 2)
-    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-    earthRadius * c
+    val key = if (locA.lat < locB.lat) (locA, locB) else (locB, locA)
+    disMap.get(key) match {
+      case None =>
+        val radLat1 = rad(locA.lat)
+        val radLat2 = rad(locB.lat)
+        val a = radLat1 - radLat2
+        val b = rad(locA.lon) - rad(locB.lon)
+        val s = 2 * Math.asin(Math.sqrt(Math.pow(cacheSin(a / 2), 2) +
+          cacheCos(radLat1) * cacheCos(radLat2) *
+            Math.pow(cacheSin(b / 2), 2)))
+        val res = s * earthRadius
+        disMap(key) = res
+        res
+      case Some(x) =>
+        x
+    }
   }
 
   /**
@@ -65,7 +72,7 @@ object Visualization {
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
     val (weightedTemp, weighted) = temperatures.map {
       case (loc, temperature) => (distance(loc, location), temperature)
-    }.foldLeft((0.0,0.0)) {
+    }.toList.sortBy(_._1).take(1000).foldLeft((0.0,0.0)) {
       case ((x, y), (dis,temp)) =>
         (x + temp/dis, y + 1/dis)
     }
@@ -116,10 +123,7 @@ object Visualization {
   }
 
   private def locToLatLon(x: Int, y: Int): Location = {
-    Location(
-      90 - y
-      ,x - 180
-    )
+    Location(90 - y, x - 180)
   }
 
   /**
@@ -128,22 +132,19 @@ object Visualization {
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
   def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
-    time {
-      val width = 360
-      val height = 180
-      val pixels = for {
-        y <- (0 until height)
-        x <- (0 until width)
-      } yield {
-        println((x,y))
-        val location = locToLatLon(x, y)
-        val temperature = predictTemperature(temperatures, location)
-        val Color(r, g, b) = interpolateColor(colors, temperature)
-        Pixel(r, g, b, 255)
-      }
-
-      Image(width, height, pixels.toArray)
+    val width = 360
+    val height = 180
+    val pixels = for {
+      y <- (0 until height)
+      x <- (0 until width)
+    } yield {
+      val location = locToLatLon(x, y)
+      val temperature = predictTemperature(temperatures, location)
+      val Color(r, g, b) = interpolateColor(colors, temperature)
+      Pixel(r, g, b, 255)
     }
+
+    Image(width, height, pixels.toArray)
   }
 
 }
