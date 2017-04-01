@@ -61,7 +61,15 @@ object Interaction {
     yearlyData: Iterable[(Int, Data)],
     generateImage: (Int, Int, Int, Int, Data) => Unit
   ): Unit = {
-    ???
+    for {
+      (year,data) <- yearlyData
+      zoom <- 0 to 3
+      n = 2 ^ zoom
+      x <- 0 until n
+      y <- 0 until n
+    } {
+      generateImage(year, zoom, x, y, data)
+    }
   }
 
 }
