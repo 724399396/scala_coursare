@@ -35,7 +35,7 @@ object Extraction {
         val date = LocalDate.of(year, month.toInt, day.toInt)
         val locOpt = locMap.get((stn, wban))
         locOpt.map(loc => (date, loc, (temperature.toDouble - 32) / 1.8))
-    }.filter(_.isDefined).map(_.get).toIterable
+    }.filter(_.isDefined).map(_.get).toList
   }
 
   /**
@@ -43,6 +43,11 @@ object Extraction {
     * @return A sequence containing, for each location, the average temperature over the year.
     */
   def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Double)]): Iterable[(Location, Double)] = {
-    records.groupBy(_._2).mapValues(vs => vs.map(_._3).sum / vs.size)
+    records.groupBy(_._2).mapValues { vs =>
+      val (sum, size) = vs.foldLeft(0.0, 0) {
+        case ((accSum, accSize), x) => (accSum + x._3, accSize + 1)
+      }
+      sum / size
+    }.toSeq
   }
 }

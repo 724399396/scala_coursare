@@ -23,6 +23,6 @@ class VisualizationTest extends FunSuite with Checkers {
       (-50.0,Color(33,0,107)),
       (-60.0,Color(0,0,0)))
     val image = Visualization.visualize(average, colors)
-    image.output("/home/weili/1.png")
+    image.output("/home/liwwli/1.png")
   }
 }
