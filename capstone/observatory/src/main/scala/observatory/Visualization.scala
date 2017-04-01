@@ -39,21 +39,19 @@ object Visualization {
     * @return The predicted temperature at `location`
     */
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
-    val predicts = temperatures.toStream.map {
-      case (loc, temperature) => (distance(loc, location), temperature)
+    val compOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
+      case ((x1, y1), (x2, y2)) => (x1 + x2, y1 + y2)
     }
-    predicts.find(_._1 < 0.1) match {
-      case Some(x) =>
-        x._2
-      case _ =>
-        val compOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
-          case ((x1, y1), (x2, y2)) => (x1 + x2, y1 + y2)
-        }
-        val seqOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
-          case ((x, y), (dis, temp)) => (x + temp / dis, y + 1 / dis)
-        }
-        val (weightedTemp, weighted) = predicts.toList.aggregate((0.0, 0.0))(seqOp, compOp)
-        weightedTemp / weighted
+    val seqOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
+      case ((x, y), (dis, temp)) => (x + temp / dis, y + 1 / dis)
+    }
+    val (weightedTemp, weighted) = temperatures.map {
+      case (loc, temperature) => (distance(loc, location), temperature)
+    }.aggregate((0.0, 0.0))(seqOp, compOp)
+    if (weighted == 0.0) {
+      weightedTemp
+    } else {
+      weightedTemp / weighted
     }
   }
 
