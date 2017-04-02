@@ -45,13 +45,19 @@ object Visualization {
     val seqOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
       case ((x, y), (dis, temp)) => (x + temp / dis, y + 1 / dis)
     }
-    val (weightedTemp, weighted) = temperatures.map {
+    val predicts = temperatures.map {
       case (loc, temperature) => (distance(loc, location), temperature)
-    }.aggregate((0.0, 0.0))(seqOp, compOp)
-    if (weighted == 0.0) {
-      weightedTemp
-    } else {
-      weightedTemp / weighted
+    }
+    predicts.find(_._1 == 0) match {
+      case Some(x) =>
+        x._2
+      case None =>
+        val (weightedTemp, weighted) = predicts.aggregate((0.0, 0.0))(seqOp, compOp)
+        if (weighted == 0.0) {
+          weightedTemp
+        } else {
+          weightedTemp / weighted
+        }
     }
   }
 
@@ -98,7 +104,7 @@ object Visualization {
     }
   }
 
-  private def locToLatLon(x: Int, y: Int): Location = {
+  def locToLatLon(x: Int, y: Int): Location = {
     Location(90 - y, x - 180)
   }
 
@@ -110,18 +116,20 @@ object Visualization {
   def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
     val width = 360
     val height = 180
-    val img = Image(width, height)
-    for {
+    val predictTemperatures = for {
       y <- (0 until height).toArray
       x <- (0 until width).toArray
-    } {
+    } yield {
       val location = locToLatLon(x, y)
-      val temperature = predictTemperature(temperatures, location)
-      val Color(r, g, b) = interpolateColor(colors, temperature)
-      img.setPixel(x, y, Pixel(r, g, b, 255))
+      predictTemperature(temperatures, location)
     }
 
-    img
+    val predictColors = predictTemperatures.map(interpolateColor(colors, _))
+    val pixels = predictColors.map{
+      case Color(r, g, b) => Pixel(r, g, b, 255)
+    }
+
+    Image(width, height, pixels)
   }
 
 }
