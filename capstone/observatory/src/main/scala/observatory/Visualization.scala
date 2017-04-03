@@ -104,7 +104,7 @@ object Visualization {
     }
   }
 
-  def locToLatLon(x: Int, y: Int): Location = {
+  private def locToLatLon(x: Int, y: Int): Location = {
     Location(90 - y, x - 180)
   }
 

@@ -1,63 +1,64 @@
 package observatory
 
 
+import java.io.PrintWriter
+
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.Checkers
+import Visualization._
 
 @RunWith(classOf[JUnitRunner])
 class VisualizationTest extends FunSuite with Checkers {
 
+  test("distance") {
 
-  test("Visualization should generate a image") {
-
-    val temperatures = Extraction.locateTemperatures(2000, "/stations.csv",
-      "/2000.csv")
-    val average = Extraction.locationYearlyAverageRecords(temperatures)
-
-    val colors = List((60.0, Color(255, 255, 255)),
-      (32.0, Color(255, 0, 0)),
-      (12.0, Color(255, 255, 0)),
-      (0.0, Color(0, 255, 255)),
-      (-15.0, Color(0, 0, 255)),
-      (-27.0, Color(255, 0, 255)),
-      (-50.0, Color(33, 0, 107)),
-      (-60.0, Color(0, 0, 0)))
-    val image = Visualization.visualize(average, colors)
-    image.output("/home/weili/1.png")
   }
 
-  test("my image test") {
-
-    val colors = List((60.0, Color(255, 255, 255)),
-      (32.0, Color(255, 0, 0)),
-      (12.0, Color(255, 255, 0)),
-      (0.0, Color(0, 255, 255)),
-      (-15.0, Color(0, 0, 255)),
-      (-27.0, Color(255, 0, 255)),
-      (-50.0, Color(33, 0, 107)),
-      (-60.0, Color(0, 0, 0)))
-    val temperatures = List(
-      (Location(90, -180), 60.0),
-      (Location(90, 180), 60.0),
-      (Location(-90, 180), 60.0),
-      (Location(-90, -180), 60.0),
-      (Location(0, 0), -20.0)
-    )
-    val width = 20
-    val height = 10
-    val calcTemperatures = for {
-      y <- (0 until height).toArray
-      x <- (0 until width).toArray
+  test("temperatures predict"){
+    val all = for {
+      disA <- (0 to 100)
+      disB <- (0 until disA)
     } yield {
-      val location = Visualization.locToLatLon(x, y)
-      val temperature = Visualization.predictTemperature(temperatures, location)
-      (x, y, temperature)
+      val compOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
+        case ((x1, y1), (x2, y2)) => (x1 + x2, y1 + y2)
+      }
+      val seqOp: ((Double, Double), (Double, Double)) => (Double, Double) = {
+        case ((x, y), (dis, temp)) => (x + temp / dis, y + 1 / dis)
+      }
+      val predict = List((disA.toDouble, 10.0), (disB.toDouble, 20.0))
+      (disA, disB, predict.find(_._1 == 0) match {
+        case Some(x) =>
+          x._2
+        case None =>
+          val (weightedTemp, weighted) = predict.aggregate((0.0, 0.0))(seqOp, compOp)
+          if (weighted == 0.0) {
+            weightedTemp
+          } else {
+            weightedTemp / weighted
+          }
+      })
     }
-    val calcColors = calcTemperatures.map(x => (x._1, x._2, Visualization.interpolateColor(colors, x._3)))
+    assert(all.filter(_._3 < 15).size == 0)
+  }
 
-    val image = Visualization.visualize(temperatures, colors)
-    image.output("/home/weili/2.png")
+  test("Visualization should generate a image") {
+    if (false) {
+      val temperatures = Extraction.locateTemperatures(2000, "/stations.csv",
+        "/2000.csv")
+      val average = Extraction.locationYearlyAverageRecords(temperatures)
+
+      val colors = List((60.0, Color(255, 255, 255)),
+        (32.0, Color(255, 0, 0)),
+        (12.0, Color(255, 255, 0)),
+        (0.0, Color(0, 255, 255)),
+        (-15.0, Color(0, 0, 255)),
+        (-27.0, Color(255, 0, 255)),
+        (-50.0, Color(33, 0, 107)),
+        (-60.0, Color(0, 0, 0)))
+      val image = visualize(average, colors)
+      image.output("/home/weili/1.png")
+    }
   }
 }
