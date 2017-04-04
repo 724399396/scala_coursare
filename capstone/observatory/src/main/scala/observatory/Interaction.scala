@@ -15,9 +15,9 @@ object Interaction {
     * @return The latitude and longitude of the top-left corner of the tile, as per http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
     */
   def tileLocation(zoom: Int, x: Int, y: Int): Location = {
-    val n = 2 ^ zoom
-    val lonDeg = x / n * 360.0 - 180.0
-    val latRad = atan(sinh(PI * (1 - 2 * y / n)))
+    val n = pow(2, zoom)
+    val lonDeg = x.toDouble / n * 360.0 - 180.0
+    val latRad = atan(sinh(PI * (1.0 - 2.0 * y.toDouble / n)))
     val latDeg = toDegrees(latRad)
     Location(latDeg, lonDeg)
   }
@@ -31,22 +31,22 @@ object Interaction {
     * @return A 256×256 image showing the contents of the tile defined by `x`, `y` and `zooms`
     */
   def tile(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)], zoom: Int, x: Int, y: Int): Image = {
-    val img = Image(256, 256)
+    val width = 256
+    val height = 256
+    val img = Image(width, height)
     val Location(lat, lon) = tileLocation(zoom, x, y)
-    val n = 2 ^ zoom
-    val latStep = (360.0 / n) / 256
-    val lonStep = (180.0 / n) / 256
+    val n = pow(2, zoom)
+    val lonStep = (360.0 / n) / (height-1)
+    val latStep = (-170.1022 / n) / (width-1)
     for {
-      cx <- (0 until 255).toArray
-      cy <- (0 until 255).toArray
+      cx <- (0 until width).toArray
+      cy <- (0 until height).toArray
     } {
-      println((zoom, x, y, cx, cy))
       val location = Location(lat + latStep * cx, lon + lonStep * cy)
       val temperature = Visualization.predictTemperature(temperatures, location)
       val Color(r, g, b) = Visualization.interpolateColor(colors, temperature)
       img.setPixel(cx, cy, Pixel(r, g, b, 127))
     }
-
     img
   }
 
@@ -64,7 +64,7 @@ object Interaction {
     for {
       (year,data) <- yearlyData
       zoom <- 0 to 3
-      n = 2 ^ zoom
+      n = pow(2, zoom).toInt
       x <- 0 until n
       y <- 0 until n
     } {

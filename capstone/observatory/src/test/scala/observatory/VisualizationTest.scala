@@ -1,22 +1,16 @@
 package observatory
 
 
-import java.io.PrintWriter
-
+import observatory.Visualization._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.Checkers
-import Visualization._
 
 @RunWith(classOf[JUnitRunner])
 class VisualizationTest extends FunSuite with Checkers {
 
-  test("distance") {
-
-  }
-
-  test("temperatures predict"){
+  test("temperatures predict") {
     val all = for {
       disA <- (0 to 100)
       disB <- (0 until disA)
@@ -44,21 +38,19 @@ class VisualizationTest extends FunSuite with Checkers {
   }
 
   test("Visualization should generate a image") {
-    if (false) {
-      val temperatures = Extraction.locateTemperatures(2000, "/stations.csv",
-        "/2000.csv")
-      val average = Extraction.locationYearlyAverageRecords(temperatures)
+    val temperatures = Extraction.locateTemperatures(2015, "/stations.csv",
+      "/2015.csv")
+    val average = Extraction.locationYearlyAverageRecords(temperatures)
 
-      val colors = List((60.0, Color(255, 255, 255)),
-        (32.0, Color(255, 0, 0)),
-        (12.0, Color(255, 255, 0)),
-        (0.0, Color(0, 255, 255)),
-        (-15.0, Color(0, 0, 255)),
-        (-27.0, Color(255, 0, 255)),
-        (-50.0, Color(33, 0, 107)),
-        (-60.0, Color(0, 0, 0)))
-      val image = visualize(average, colors)
-      image.output("/home/weili/1.png")
-    }
+    val colors = List((60.0, Color(255, 255, 255)),
+      (32.0, Color(255, 0, 0)),
+      (12.0, Color(255, 255, 0)),
+      (0.0, Color(0, 255, 255)),
+      (-15.0, Color(0, 0, 255)),
+      (-27.0, Color(255, 0, 255)),
+      (-50.0, Color(33, 0, 107)),
+      (-60.0, Color(0, 0, 0)))
+    val image = visualize(average, colors)
+    image.output("d:/1.png")
   }
 }

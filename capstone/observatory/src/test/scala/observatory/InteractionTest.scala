@@ -1,5 +1,7 @@
 package observatory
 
+import java.io.File
+
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -9,7 +11,9 @@ import scala.collection.concurrent.TrieMap
 
 @RunWith(classOf[JUnitRunner])
 class InteractionTest extends FunSuite with Checkers {
+
   test("test generate tile") {
+    val base = getClass.getResource("/").getPath
     val temperatures = Extraction.locateTemperatures(2015, "/stations.csv",
       "/2015.csv")
     val average = Extraction.locationYearlyAverageRecords(temperatures)
@@ -24,12 +28,14 @@ class InteractionTest extends FunSuite with Checkers {
       (-60.0,Color(0,0,0)))
     for {
       zoom <- 0 to 3
-      n = 2 ^ zoom
+      n = zoom * zoom
       x <- 0 until n
       y <- 0 until n
     } {
+      println((zoom,n,x,y))
       val image = Interaction.tile(average, colors, zoom, x, y)
-      image.output(getClass.getResource(s"/temperatures/2015/$zoom/$x-$y.png").getFile)
+      new File(base + s"temperatures/2015/$zoom").mkdirs()
+      image.output(base + s"temperatures/2015/$zoom/$x-$y.png")
     }
   }
 }
