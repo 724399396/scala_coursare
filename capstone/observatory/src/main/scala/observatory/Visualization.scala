@@ -8,7 +8,7 @@ import com.sksamuel.scrimage.{Image, Pixel}
   * 2nd milestone: basic visualization
   */
 object Visualization {
-  private val earthRadius = 6378.137
+  private val earthRadius = 6371
 
   private def time[A](a: => A): A = {
     val start = System.nanoTime()
@@ -18,19 +18,18 @@ object Visualization {
     res
   }
 
-  private def rad(d: Double): Double = {
-    PI * d / 180
-  }
-
   def distance(locA: Location, locB: Location): Double = {
-    val radLat1 = rad(locA.lat)
-    val radLat2 = rad(locB.lat)
-    val a = radLat1 - radLat2
-    val b = rad(locA.lon) - rad(locB.lon)
-    val s = 2 * asin(sqrt(pow(sin(a / 2), 2) +
-      sin(radLat1) * sin(radLat2) *
-        pow(sin(b / 2), 2)))
-    s * earthRadius
+    val Location(latA, lonA) = locA
+    val Location(latB, lonB) = locB
+    val latDistance = toRadians(latB - latA)
+    val lonDistance = toRadians(lonB - lonA)
+
+    val a = pow(sin(latDistance / 2), 2) +
+    cos(toRadians(latA)) * cos(toRadians(latB)) *
+    pow(sin(lonDistance / 2), 2)
+
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    c * earthRadius
   }
 
   /**
