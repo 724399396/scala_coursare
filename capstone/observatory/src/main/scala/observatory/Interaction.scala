@@ -35,12 +35,13 @@ object Interaction {
     val height = 256
     val img = Image(width, height)
     val Location(lat, lon) = tileLocation(zoom, x, y)
-    val n = pow(2, zoom)
-    val lonStep = (360.0 / n) / (height-1)
-    val latStep = (-170.1022 / n) / (width-1)
+    val Location(nLat, nLon) = tileLocation(zoom, x+1, y+1)
+    val n = pow(2, zoom).toInt
+    val lonStep = if (x == n-1) (nLat - lat) / (height-1) else (nLat - lat) / height
+    val latStep = if (y == n-1) (nLon - lon) / (width-1) else (nLon - lon) / width
     for {
-      cx <- (0 until width).toArray
-      cy <- (0 until height).toArray
+      cx <- (0 until width)
+      cy <- (0 until height)
     } {
       val location = Location(lat + latStep * cx, lon + lonStep * cy)
       val temperature = Visualization.predictTemperature(temperatures, location)
